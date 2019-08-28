@@ -65,6 +65,8 @@ def _operators_generator(block):  # pylint: disable=unused-argument
          "value": "gte"},
         {"display_name": "greater than",
          "value": "gt"},
+         {"display_name": "range",
+         "value": "rng"},
         {"display_name": "none of the problems have been answered",
          "value": "all_null"},
         {"display_name": "all problems have been answered",
@@ -72,7 +74,6 @@ def _operators_generator(block):  # pylint: disable=unused-argument
         {"display_name": "some problem has not been answered",
          "value": "has_null"}
     ]
-
 
 def n_all(iterable):
     """
@@ -97,7 +98,6 @@ class FlowCheckPointXblock(StudioEditableXBlockMixin, XBlock):
         scope=Scope.settings,
         default="Flow Control"
     )
-
     action = String(display_name="Action",
                     help="Select the action to be performed "
                     "when the condition is met",
@@ -116,12 +116,23 @@ class FlowCheckPointXblock(StudioEditableXBlockMixin, XBlock):
                       scope=Scope.content,
                       default='eq',
                       values_provider=_operators_generator)
-
     ref_value = Integer(help="Enter the value to be used in "
                         "the comparison. (From 0 to 100)",
                         default=0,
                         scope=Scope.content,
                         display_name="Score percentage")
+
+    range_value_min = Integer(help="Enter the min value to be used in "
+                        "the range. (From 0 to 100)",
+                        default=0,
+                        scope=Scope.content,
+                        display_name="min")
+
+    range_value_max = Integer(help="Enter the max value to be used in "
+                    "the range. (From 0 to 100)",
+                    default=0,
+                    scope=Scope.content,
+                    display_name="max")
 
     tab_to = Integer(help="Number of unit tab to redirect to. (1, 2, 3...)",
                      default=1,
@@ -168,11 +179,14 @@ class FlowCheckPointXblock(StudioEditableXBlockMixin, XBlock):
                        'list_of_problems',
                        'operator',
                        'ref_value',
+                       'range_value_min',
+                       'range_value_max',
                        'action',
                        'tab_to',
                        'target_url',
                        'target_id',
-                       'message')
+                       'message',
+                       )
 
     def validate_field_data(self, validation, data):
         """
@@ -232,7 +246,6 @@ class FlowCheckPointXblock(StudioEditableXBlockMixin, XBlock):
             # now split list of problems id by spaces or commas
             problems = re.split('\s*,*|\s*,\s*', self.list_of_problems)
             problems = filter(None, problems)
-
         if problems:
             condition_reached = self.condition_on_problem_list(problems)
 
@@ -311,7 +324,8 @@ class FlowCheckPointXblock(StudioEditableXBlockMixin, XBlock):
                 result = percentage < self.ref_value
             if self.operator == 'gt':
                 result = percentage > self.ref_value
-
+            if self.operator == 'rng':
+                result = self.range_value_min <= percentage <= self.range_value_max
         return result
 
     def are_all_not_null(self, problems_to_answer):

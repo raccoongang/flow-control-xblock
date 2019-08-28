@@ -81,7 +81,14 @@ var viewblocks = {
     }
 
     if ($.inArray($(uiSelectors.operator).val(),specialOperators) == -1 ) {
-      $(uiSelectors.settingsFields).filter('[data-field-name="ref_value"]').show();
+      if($('#xb-field-edit-operator').val() == 'rng'){
+        $(uiSelectors.settingsFields).filter('[data-field-name="range_value_min"]').show();
+        $(uiSelectors.settingsFields).filter('[data-field-name="range_value_max"]').show();
+      } else {
+        $(uiSelectors.settingsFields).filter('[data-field-name="ref_value"]').show();
+
+    }
+
     }
   },
   applyFlowControl: function applyFlowControl(condition) {
